@@ -747,7 +747,12 @@ func headerToBytes(buff io.Writer, header textproto.MIMEHeader) {
 			case field == "Content-Type" || field == "Content-Disposition":
 				buff.Write([]byte(subval))
 			case field == "From" || field == "To" || field == "Cc" || field == "Bcc":
-				participants := strings.Split(subval, ",")
+				participantsAddresses, err := mail.ParseAddressList(subval)
+				//participants := strings.Split(subval, ",")
+				if err != nil {
+					continue
+				}
+				/*
 				for i, v := range participants {
 					addr, err := mail.ParseAddress(v)
 					if err != nil {
@@ -756,6 +761,11 @@ func headerToBytes(buff io.Writer, header textproto.MIMEHeader) {
 					if addr.Name != "" {
 						participants[i] = fmt.Sprintf("%s <%s>", mime.QEncoding.Encode("UTF-8", addr.Name), addr.Address)
 					}
+				}
+				*/
+				participants := []string{}
+				for _, pa := range participantsAddresses {
+					participants = append(participants, pa.String())
 				}
 				buff.Write([]byte(strings.Join(participants, ", ")))
 			default:
